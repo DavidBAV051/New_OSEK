@@ -78,7 +78,12 @@ void Init_Boton_Interrupt(void) {
 
     GPIO_PinInit(BOTON_GPIO, BOTON_PIN, &sw_config);
 }
-void GPIO00_IRQHandler(void);
+void GPIO00_IRQHandler(void) {
+    activate_task_ISR(TASK_4_ID);
+
+	GPIO_GpioClearInterruptFlags(BOTON_GPIO, 1U << BOTON_PIN);
+
+}
 
 int main(void) {
     gpio_pin_config_t led_config = {
@@ -102,14 +107,6 @@ int main(void) {
     while(1) {
     }
     return 0 ;
-}
-
-/* --- ISR --- */
-void GPIO00_IRQHandler(void) {
-    activate_task_ISR(TASK_4_ID);
-
-	GPIO_GpioClearInterruptFlags(BOTON_GPIO, 1U << BOTON_PIN);
-
 }
 
 void task_1(void){
