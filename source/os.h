@@ -1,0 +1,113 @@
+/*
+ * os.h
+ *
+ *  Created on: Mar 23, 2026
+ *      Author: david
+ */
+
+#ifndef OS_H_
+#define OS_H_
+
+#include <stdint.h>
+
+/*==================================================================*/
+/* Definitions */
+#define MAX_NUMBER_TASKS 5
+
+#define E_OK       0
+#define E_OS_LIMIT 1
+#define E_OS_ID    2
+
+#define TRUE 1
+#define FALSE 0
+
+#define TASK_IDLE_ID 0
+#define TASK_1_ID 1
+#define TASK_2_ID 2
+#define TASK_3_ID 3
+#define TASK_4_ID 4 // ISR task
+
+#define ZERO 0
+#define ONE 1
+#define TWO 2
+#define THREE 3
+#define FOUR 4
+#define FIVE 5
+#define SIX 6
+#define SEVEN 7
+#define EIGHT 8
+#define NINE 9
+
+#define U8_SIZE 255
+#define STACK_SIZE 128
+
+/*==================================================================*/
+/* Context Backup */
+#define Context_Backup() \
+    __asm volatile("push {r4-r11}\n" \
+                   "ldr r0, =temp_sp  \n" \
+                   "str r13, [r0]       ")
+#define Context_Restore() \
+    __asm volatile("ldr r0, =temp_sp  \n" \
+                   "ldr r13, [r0]     \n" \
+                   "pop {r4-r11}    ")
+
+/*==================================================================*/
+/* Type definitions */
+typedef uint8_t u8;
+typedef uint16_t u16;
+typedef uint32_t u32;
+
+typedef enum{
+	SUSPENDED = 0,
+	READY,
+	RUNNING,
+	WAIT
+} TASK_STATES;
+
+typedef struct{
+	u8 Autostart;
+	u8 Priority;
+	u8 Pause;
+	TASK_STATES Estado;
+	void (*DirTask)(void);
+	void (*DirTask_Pause)(void);
+	unsigned long SP_Pause;
+	u32 task_counter;
+}Task_Control_Struct;
+
+/*==================================================================*/
+/* Global Variables */
+extern Task_Control_Struct task_arr[MAX_NUMBER_TASKS];
+extern unsigned long idle;
+extern unsigned long temp;
+extern unsigned long temp_sp;
+extern u8 current_task_id;
+extern volatile u8 interrupt_active;
+
+extern volatile u8 tick_count;
+
+/*==================================================================*/
+/* Function Protoypes */
+void task_config(void);
+
+void os_init(void);
+u8 activate_task(u8 Task_ID);
+u8 activate_task_ISR(u8 Task_ID);
+void terminate_task(void);
+void terminate_task_ISR(void);
+void chain_task(u8 Task_ID);
+void scheduler(void);
+
+//void SysTick_Handler(void);
+//void task_delay(u32 ticks);
+
+/* Task Prototypes */
+void task_idle(void);
+void task_1(void);
+void task_2(void);
+void task_3(void);
+void task_4(void);
+
+/*==================================================================*/
+#endif /* OS_H_ */

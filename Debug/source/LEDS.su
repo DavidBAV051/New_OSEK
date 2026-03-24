@@ -1,0 +1,2 @@
+C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_gpio.h:374:20:GPIO_PortSet	16	static
+../source/LEDS.c:13:6:Init_Leds	16	static

@@ -1,0 +1,8 @@
+../source/os.c:22:6:scheduler	16	static
+../source/os.c:63:6:os_init	16	static
+../source/os.c:78:4:activate_task	16	static
+../source/os.c:95:4:activate_task_ISR	16	static
+../source/os.c:108:6:terminate_task	8	static
+../source/os.c:112:6:terminate_task_ISR	8	static
+../source/os.c:117:6:chain_task	16	static
+../source/os.c:125:6:task_config	4	static
