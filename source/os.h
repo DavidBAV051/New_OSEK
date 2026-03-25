@@ -22,10 +22,10 @@
 #define FALSE 0
 
 #define TASK_IDLE_ID 0
-#define TASK_1_ID 1
+#define TASK_ISR_BTN_ID 1
 #define TASK_2_ID 2
 #define TASK_3_ID 3
-#define TASK_4_ID 4 // ISR task
+#define TASK_4_ID 4
 
 #define ZERO 0
 #define ONE 1
@@ -104,10 +104,10 @@ void scheduler(void);
 
 /* Task Prototypes */
 void task_idle(void);
-void task_1(void);
-void task_2(void);
-void task_3(void);
-void task_4(void);
+void task_ISR_BTN(void);
+void task_PWM1(void);
+void task_PWM2(void);
+void task_PWM3(void);
 
 /*==================================================================*/
 #endif /* OS_H_ */

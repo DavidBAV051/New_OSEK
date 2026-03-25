@@ -112,7 +112,7 @@ void GPIO00_IRQHandler(void) {
 
 }
 
-void task_1(void){
+void task_PWM1(void){
 	delay();
 	LED_GREEN_ON();
 	activate_task(TASK_2_ID);
@@ -122,21 +122,13 @@ void task_1(void){
 	terminate_task();
 }
 
-void task_2(void){
+void task_PWM2(void){
 	delay();
 	LED_RED_ON();
 	chain_task(TASK_3_ID);
 }
 
-void task_3(void){
-	delay();
-	LED_RED_OFF();
-	delay();
-	LED_BLUE_ON();
-	delay();
-	terminate_task();
-}
-void task_4(void){
+void task_ISR_BTN(void){
 	delay();
 	LED_GREEN_ON();
 	LED_BLUE_ON();

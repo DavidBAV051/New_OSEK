@@ -127,19 +127,16 @@ void task_config(void){
 	task_arr[TASK_IDLE_ID].Priority = ZERO;
 	task_arr[TASK_IDLE_ID].DirTask = task_idle;
 
-	task_arr[TASK_1_ID].Autostart = TRUE;
-	task_arr[TASK_1_ID].Priority = ONE;
-	task_arr[TASK_1_ID].DirTask = task_1;
+	task_arr[TASK_ISR_BTN_ID].Autostart = TRUE;
+	task_arr[TASK_ISR_BTN_ID].Priority = TWO;
+	task_arr[TASK_ISR_BTN_ID].DirTask = task_ISR_BTN;
 
 	task_arr[TASK_2_ID].Autostart = FALSE;
-	task_arr[TASK_2_ID].Priority = TWO;
-	task_arr[TASK_2_ID].DirTask = task_2;
+	task_arr[TASK_2_ID].Priority = ONE;
+	task_arr[TASK_2_ID].DirTask = task_PWM1;
 
 	task_arr[TASK_3_ID].Autostart = FALSE;
-	task_arr[TASK_3_ID].Priority = THREE;
-	task_arr[TASK_3_ID].DirTask = task_3;
+	task_arr[TASK_3_ID].Priority = ONE;
+	task_arr[TASK_3_ID].DirTask = task_PWM2;
 
-	task_arr[TASK_4_ID].Autostart = FALSE;
-	task_arr[TASK_4_ID].Priority = FOUR;
-	task_arr[TASK_4_ID].DirTask = task_4;
 }
