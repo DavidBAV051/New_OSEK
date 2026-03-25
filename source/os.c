@@ -177,6 +177,10 @@ void task_config(void){
 	task_arr[TASK_3_ID].Priority = ONE;
 	task_arr[TASK_3_ID].DirTask = task_PWM2;
 
+	task_arr[TASK_4_ID].Autostart = TRUE;
+	task_arr[TASK_4_ID].Priority = ONE;
+	task_arr[TASK_4_ID].DirTask = task_PWM3;
+
 }
 
 /*==================================================================*/

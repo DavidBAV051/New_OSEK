@@ -9,4 +9,4 @@
 ../source/os.c:149:6:terminate_task_ISR	8	static
 ../source/os.c:154:6:chain_task	16	static
 ../source/os.c:163:6:task_config	4	static
-../source/os.c:183:6:task_idle	8	static
+../source/os.c:187:6:task_idle	8	static

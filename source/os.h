@@ -13,8 +13,8 @@
 
 /*==================================================================*/
 /* Definitions */
-#define MAX_NUMBER_TASKS 4
-#define CONFIGURED_TASKS 4
+#define MAX_NUMBER_TASKS 5
+#define CONFIGURED_TASKS 5
 
 #define E_OK       0
 #define E_OS_LIMIT 1

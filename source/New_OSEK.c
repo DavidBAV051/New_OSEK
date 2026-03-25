@@ -105,9 +105,9 @@ int main(void) {
 
 	task_config();
 	os_init();
-    while(1) {
+    while(ONE) {
     }
-    return 0 ;
+    return ZERO ;
 }
 
 void task_PWM1(void){
@@ -128,6 +128,14 @@ void task_PWM2(void){
 	}
 }
 
+void task_PWM3(void){
+	while(ONE){
+		LED_BLUE_ON();
+		task_delay(5);
+		LED_BLUE_OFF();
+		task_delay(5);
+	}
+}
 void task_ISR_BTN(void){
 	delay();
 	LED_GREEN_ON();
