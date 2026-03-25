@@ -87,37 +87,17 @@ void os_init(void){
 }
 
 /*==================================================================*/
-//void task_delay(u32 ticks){
-//	__asm volatile ("ldr r2, =temp_sp");
-//	__asm volatile ("str r13, [r2]");
-//	__asm volatile ("ldr r2, =temp");
-//	__asm volatile ("str r14, [r2]");
-//
-//	task_arr[current_task_id].task_counter = ticks; // Configuramos Ticks de espera
-//	task_arr[current_task_id].Estado = WAIT; // Mandamos a esperar
-//
-//	task_arr[current_task_id].Pause = ONE;
-//
-//	task_arr[current_task_id].DirTask_Pause = (void (*)(void))temp;
-//	task_arr[current_task_id].SP_Pause = temp_sp;
-//
-//	scheduler();
-//
-//}
-
-// os.c
-
 __attribute__((naked)) void task_delay(u32 ticks){
     __asm volatile (
         "ldr r2, =temp_sp   \n"
         "str r13, [r2]      \n"
         "ldr r2, =temp      \n"
         "str r14, [r2]      \n"
-        "bl task_delay_impl \n"
+        "bl task_delay_savedctxt \n"
         "bx lr              \n"
     );
 }
-void task_delay_impl(u32 ticks){
+void task_delay_savedctxt(u32 ticks){
     task_arr[current_task_id].task_counter = ticks;
     task_arr[current_task_id].Estado = WAIT;
     task_arr[current_task_id].Pause = ONE;
@@ -214,14 +194,6 @@ void task_config(void){
 /*==================================================================*/
 void task_idle(void){
 	while(ONE){
-		__asm volatile ("ldr r2, =temp_sp");
-		__asm volatile ("str r13, [r2]");
-		__asm volatile ("ldr r2, =temp");
-		__asm volatile ("str r14, [r2]");
-
-		task_arr[current_task_id].Pause = TRUE;
-		task_arr[TASK_IDLE_ID].DirTask_Pause = (void (*)(void))temp;
-		task_arr[TASK_IDLE_ID].SP_Pause = temp_sp;
 		if(td_flag == TRUE){
 			td_flag = FALSE;
 			scheduler();

@@ -104,7 +104,7 @@ void scheduler(void);
 
 void SysTick_Handler(void);
 void task_delay(u32 ticks);
-void task_delay_impl(u32 ticks);
+void task_delay_savedctxt(u32 ticks);
 
 /* Task Prototypes */
 void task_idle(void);
