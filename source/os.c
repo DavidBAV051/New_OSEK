@@ -28,18 +28,14 @@ void scheduler(void){
 
 	for(i = ZERO; i < num_tasks_configured; i++){
 		if(task_arr[i].Estado == READY){
-			if(task_arr[i].Priority > max_prioridad_actual){
+			if(task_arr[i].Priority >= max_prioridad_actual){
 				max_prioridad_actual = task_arr[i].Priority;
 				task_to_run = i;
 				task_found = TRUE;
 			}
 		}
 	}
-	if(task_found == FALSE){
-		max_prioridad_actual = task_arr[TASK_IDLE_ID].Priority;
-		task_to_run = TASK_IDLE_ID;
-		task_found = TRUE;
-	}
+
 	if(task_found == TRUE){
 		current_task_id = task_to_run;
 		task_arr[current_task_id].Estado = RUNNING;
@@ -50,13 +46,7 @@ void scheduler(void){
 			temp = (unsigned long)task_arr[current_task_id].DirTask_Pause;
 			temp_sp = (unsigned long)task_arr[current_task_id].SP_Pause;
 
-			__asm volatile ("ldr r2, =temp");
-			__asm volatile ("ldr r2, [r2]");
-			__asm volatile ("ldr r3, =temp_sp");
-			__asm volatile ("ldr r3, [r3]");
-			__asm volatile ("orr r2, r2, #1");
-			__asm volatile ("mov r13, r3");
-			__asm volatile ("mov r15, r2");
+			Context_Restore();
 		}
 		if(task_arr[current_task_id].DirTask != ZERO && idle != ONE){
 			idle = ZERO;
@@ -65,7 +55,7 @@ void scheduler(void){
 		if(interrupt_active > ZERO){
 			interrupt_active --;
 			idle = ZERO;
-			Context_Restore();
+			Context_Restore_ISR();
 		}
 	}
 }
@@ -87,6 +77,7 @@ void os_init(void){
 }
 
 /*==================================================================*/
+/* Task Delay Section */
 __attribute__((naked)) void task_delay(u32 ticks){
     __asm volatile (
         "ldr r2, =temp_sp   \n"
@@ -123,10 +114,7 @@ void SysTick_Handler(void) {
 
 /*==================================================================*/
 u8 activate_task(u8 Task_ID){
-	__asm volatile ("ldr r2, =temp_sp");
-	__asm volatile ("str r13, [r2]");
-	__asm volatile ("ldr r2, =temp");
-	__asm volatile ("str r14, [r2]");
+	Context_Backup();
 	if(Task_ID >= MAX_NUMBER_TASKS){
 		return E_OS_LIMIT;
 	}
@@ -142,7 +130,7 @@ u8 activate_task(u8 Task_ID){
 }
 
 u8 activate_task_ISR(u8 Task_ID){
-    Context_Backup();
+    Context_Backup_ISR();
 
 	if(Task_ID >= MAX_NUMBER_TASKS){
 		return E_OS_LIMIT;
@@ -185,7 +173,7 @@ void task_config(void){
 	task_arr[TASK_2_ID].Priority = ONE;
 	task_arr[TASK_2_ID].DirTask = task_PWM1;
 
-	task_arr[TASK_3_ID].Autostart = FALSE;
+	task_arr[TASK_3_ID].Autostart = TRUE;
 	task_arr[TASK_3_ID].Priority = ONE;
 	task_arr[TASK_3_ID].DirTask = task_PWM2;
 
@@ -196,6 +184,7 @@ void task_idle(void){
 	while(ONE){
 		if(td_flag == TRUE){
 			td_flag = FALSE;
+			task_arr[current_task_id].Estado = READY;
 			scheduler();
 		}
 	}

@@ -115,11 +115,17 @@ void task_PWM1(void){
 		LED_GREEN_ON();
 		task_delay(1);
 		LED_GREEN_OFF();
-		task_delay(2);
+		task_delay(9);
 	}
 }
 
 void task_PWM2(void){
+	while(ONE){
+		LED_RED_ON();
+		task_delay(3);
+		LED_RED_OFF();
+		task_delay(7);
+	}
 }
 
 void task_ISR_BTN(void){
@@ -134,11 +140,3 @@ void task_ISR_BTN(void){
 	terminate_task_ISR();
 }
 
-//void task_idle(void){
-//	while(ONE){
-//		if(td_flag == TRUE){
-//			td_flag = FALSE;
-//			scheduler();
-//		}
-//	}
-//}

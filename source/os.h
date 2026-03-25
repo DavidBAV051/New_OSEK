@@ -44,12 +44,27 @@
 #define STACK_SIZE 128
 
 /*==================================================================*/
-/* Context Backup */
+/* Context Backup*/
 #define Context_Backup() \
+	__asm volatile ("ldr r2, =temp_sp\n" \
+					"str r13, [r2]\n" \
+					"ldr r2, =temp\n" \
+					"str r14, [r2]");
+#define Context_Restore() \
+	__asm volatile ("ldr r2, =temp\n"\
+					"ldr r2, [r2]\n"\
+					"ldr r3, =temp_sp\n"\
+					"ldr r3, [r3]\n"\
+					"orr r2, r2, #1\n"\
+					"mov r13, r3\n"\
+					"mov r15, r2");
+
+/* Context Backup for ISRs */
+#define Context_Backup_ISR() \
     __asm volatile("push {r4-r11}\n" \
                    "ldr r0, =temp_sp  \n" \
                    "str r13, [r0]       ")
-#define Context_Restore() \
+#define Context_Restore_ISR() \
     __asm volatile("ldr r0, =temp_sp  \n" \
                    "ldr r13, [r0]     \n" \
                    "pop {r4-r11}    ")
