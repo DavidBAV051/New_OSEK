@@ -9,10 +9,12 @@
 #define OS_H_
 
 #include <stdint.h>
+#include <stdbool.h>
 
 /*==================================================================*/
 /* Definitions */
-#define MAX_NUMBER_TASKS 5
+#define MAX_NUMBER_TASKS 4
+#define CONFIGURED_TASKS 4
 
 #define E_OK       0
 #define E_OS_LIMIT 1
@@ -86,6 +88,7 @@ extern u8 current_task_id;
 extern volatile u8 interrupt_active;
 
 extern volatile u8 tick_count;
+extern volatile bool td_flag;
 
 /*==================================================================*/
 /* Function Protoypes */
@@ -99,8 +102,9 @@ void terminate_task_ISR(void);
 void chain_task(u8 Task_ID);
 void scheduler(void);
 
-//void SysTick_Handler(void);
-//void task_delay(u32 ticks);
+void SysTick_Handler(void);
+void task_delay(u32 ticks);
+void task_delay_impl(u32 ticks);
 
 /* Task Prototypes */
 void task_idle(void);

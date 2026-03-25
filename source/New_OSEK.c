@@ -79,12 +79,13 @@ void Init_Boton_Interrupt(void) {
     GPIO_PinInit(BOTON_GPIO, BOTON_PIN, &sw_config);
 }
 void GPIO00_IRQHandler(void) {
-    activate_task_ISR(TASK_4_ID);
+    activate_task_ISR(TASK_ISR_BTN_ID);
 
 	GPIO_GpioClearInterruptFlags(BOTON_GPIO, 1U << BOTON_PIN);
 
 }
 
+/*==================================================================*/
 int main(void) {
     gpio_pin_config_t led_config = {
         kGPIO_DigitalOutput,
@@ -100,7 +101,7 @@ int main(void) {
 	LED_RED_OFF();
 	LED_BLUE_OFF();
 
-//	SysTick_Config(SystemCoreClock / TIME_PARAM);
+	SysTick_Config(SystemCoreClock / TIME_PARAM);
 
 	task_config();
 	os_init();
@@ -110,6 +111,12 @@ int main(void) {
 }
 
 void task_PWM1(void){
+	while(ONE){
+		LED_GREEN_ON();
+		task_delay(1);
+		LED_GREEN_OFF();
+		task_delay(2);
+	}
 }
 
 void task_PWM2(void){
@@ -127,12 +134,11 @@ void task_ISR_BTN(void){
 	terminate_task_ISR();
 }
 
-void task_idle(void){
-	while(ONE){
-		delay();
-		LED_RED_ON();
-		delay();
-		LED_RED_OFF();
-		delay();
-	}
-}
+//void task_idle(void){
+//	while(ONE){
+//		if(td_flag == TRUE){
+//			td_flag = FALSE;
+//			scheduler();
+//		}
+//	}
+//}

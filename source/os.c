@@ -15,8 +15,9 @@ unsigned long idle;
 unsigned long temp;
 unsigned long temp_sp;
 u8 current_task_id = ZERO;
-u8 num_tasks_configured = FIVE;
+u8 num_tasks_configured = CONFIGURED_TASKS;
 u8 volatile interrupt_active = ZERO;
+volatile bool td_flag = FALSE;
 
 /*==================================================================*/
 void scheduler(void){
@@ -27,12 +28,17 @@ void scheduler(void){
 
 	for(i = ZERO; i < num_tasks_configured; i++){
 		if(task_arr[i].Estado == READY){
-			if(task_arr[i].Priority >= max_prioridad_actual){
+			if(task_arr[i].Priority > max_prioridad_actual){
 				max_prioridad_actual = task_arr[i].Priority;
 				task_to_run = i;
 				task_found = TRUE;
 			}
 		}
+	}
+	if(task_found == FALSE){
+		max_prioridad_actual = task_arr[TASK_IDLE_ID].Priority;
+		task_to_run = TASK_IDLE_ID;
+		task_found = TRUE;
 	}
 	if(task_found == TRUE){
 		current_task_id = task_to_run;
@@ -42,10 +48,14 @@ void scheduler(void){
 			task_arr[current_task_id].Pause = FALSE;
 
 			temp = (unsigned long)task_arr[current_task_id].DirTask_Pause;
+			temp_sp = (unsigned long)task_arr[current_task_id].SP_Pause;
 
 			__asm volatile ("ldr r2, =temp");
 			__asm volatile ("ldr r2, [r2]");
+			__asm volatile ("ldr r3, =temp_sp");
+			__asm volatile ("ldr r3, [r3]");
 			__asm volatile ("orr r2, r2, #1");
+			__asm volatile ("mov r13, r3");
 			__asm volatile ("mov r15, r2");
 		}
 		if(task_arr[current_task_id].DirTask != ZERO && idle != ONE){
@@ -60,6 +70,7 @@ void scheduler(void){
 	}
 }
 
+/*==================================================================*/
 void os_init(void){
 	u8 i;
 	for(i = ZERO; i < num_tasks_configured; i++){
@@ -75,7 +86,67 @@ void os_init(void){
 	scheduler();
 }
 
+/*==================================================================*/
+//void task_delay(u32 ticks){
+//	__asm volatile ("ldr r2, =temp_sp");
+//	__asm volatile ("str r13, [r2]");
+//	__asm volatile ("ldr r2, =temp");
+//	__asm volatile ("str r14, [r2]");
+//
+//	task_arr[current_task_id].task_counter = ticks; // Configuramos Ticks de espera
+//	task_arr[current_task_id].Estado = WAIT; // Mandamos a esperar
+//
+//	task_arr[current_task_id].Pause = ONE;
+//
+//	task_arr[current_task_id].DirTask_Pause = (void (*)(void))temp;
+//	task_arr[current_task_id].SP_Pause = temp_sp;
+//
+//	scheduler();
+//
+//}
+
+// os.c
+
+__attribute__((naked)) void task_delay(u32 ticks){
+    __asm volatile (
+        "ldr r2, =temp_sp   \n"
+        "str r13, [r2]      \n"
+        "ldr r2, =temp      \n"
+        "str r14, [r2]      \n"
+        "bl task_delay_impl \n"
+        "bx lr              \n"
+    );
+}
+void task_delay_impl(u32 ticks){
+    task_arr[current_task_id].task_counter = ticks;
+    task_arr[current_task_id].Estado = WAIT;
+    task_arr[current_task_id].Pause = ONE;
+    task_arr[current_task_id].DirTask_Pause = (void (*)(void))temp;
+    task_arr[current_task_id].SP_Pause = temp_sp;
+    scheduler();
+}
+void SysTick_Handler(void) {
+	u8 i;
+	for(i = ZERO; i < MAX_NUMBER_TASKS; i++){
+		if(task_arr[i].Estado == WAIT){
+			if(task_arr[i].task_counter > ZERO){
+				task_arr[i].task_counter--;
+
+				if(task_arr[i].task_counter == ZERO){
+					task_arr[i].Estado = READY;
+					td_flag = TRUE;
+				}
+			}
+		}
+	}
+}
+
+/*==================================================================*/
 u8 activate_task(u8 Task_ID){
+	__asm volatile ("ldr r2, =temp_sp");
+	__asm volatile ("str r13, [r2]");
+	__asm volatile ("ldr r2, =temp");
+	__asm volatile ("str r14, [r2]");
 	if(Task_ID >= MAX_NUMBER_TASKS){
 		return E_OS_LIMIT;
 	}
@@ -83,10 +154,8 @@ u8 activate_task(u8 Task_ID){
 	task_arr[current_task_id].Estado = READY;
 	task_arr[current_task_id].Pause = TRUE;
 
-	__asm volatile ("ldr r2, =temp");
-	__asm volatile ("str r14, [r2]");
-
 	task_arr[current_task_id].DirTask_Pause = (void (*)(void))temp;
+	task_arr[current_task_id].SP_Pause = temp_sp;
 
 	scheduler();
 	return E_OK;
@@ -122,16 +191,17 @@ void chain_task(u8 Task_ID){
 	scheduler();
 }
 
+/*==================================================================*/
 void task_config(void){
 	task_arr[TASK_IDLE_ID].Autostart = TRUE;
 	task_arr[TASK_IDLE_ID].Priority = ZERO;
 	task_arr[TASK_IDLE_ID].DirTask = task_idle;
 
-	task_arr[TASK_ISR_BTN_ID].Autostart = TRUE;
+	task_arr[TASK_ISR_BTN_ID].Autostart = FALSE;
 	task_arr[TASK_ISR_BTN_ID].Priority = TWO;
 	task_arr[TASK_ISR_BTN_ID].DirTask = task_ISR_BTN;
 
-	task_arr[TASK_2_ID].Autostart = FALSE;
+	task_arr[TASK_2_ID].Autostart = TRUE;
 	task_arr[TASK_2_ID].Priority = ONE;
 	task_arr[TASK_2_ID].DirTask = task_PWM1;
 
@@ -139,4 +209,22 @@ void task_config(void){
 	task_arr[TASK_3_ID].Priority = ONE;
 	task_arr[TASK_3_ID].DirTask = task_PWM2;
 
+}
+
+/*==================================================================*/
+void task_idle(void){
+	while(ONE){
+		__asm volatile ("ldr r2, =temp_sp");
+		__asm volatile ("str r13, [r2]");
+		__asm volatile ("ldr r2, =temp");
+		__asm volatile ("str r14, [r2]");
+
+		task_arr[current_task_id].Pause = TRUE;
+		task_arr[TASK_IDLE_ID].DirTask_Pause = (void (*)(void))temp;
+		task_arr[TASK_IDLE_ID].SP_Pause = temp_sp;
+		if(td_flag == TRUE){
+			td_flag = FALSE;
+			scheduler();
+		}
+	}
 }

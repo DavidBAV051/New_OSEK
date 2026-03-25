@@ -1,4 +1,6 @@
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\CMSIS/core_cm33.h:2358:22:__NVIC_EnableIRQ	16	static
+C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\CMSIS/core_cm33.h:2555:22:__NVIC_SetPriority	16	static
+C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\CMSIS/core_cm33.h:3108:26:SysTick_Config	16	static
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_clock.h:1492:20:CLOCK_EnableClock	24	static
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_common_arm.h:678:24:EnableIRQ	24	static
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_gpio.h:374:20:GPIO_PortSet	16	static
@@ -7,10 +9,8 @@ C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_gpio
 ../source/New_OSEK.c:45:6:BOARD_InitHardware	8	static
 ../source/New_OSEK.c:64:6:delay	8	static
 ../source/New_OSEK.c:70:6:Init_Boton_Interrupt	16	static
-../source/New_OSEK.c:83:5:main	16	static
-../source/New_OSEK.c:108:6:GPIO00_IRQHandler	8	static
-../source/New_OSEK.c:115:6:task_1	8	static
-../source/New_OSEK.c:125:6:task_2	8	static
-../source/New_OSEK.c:131:6:task_3	8	static
-../source/New_OSEK.c:139:6:task_4	8	static
-../source/New_OSEK.c:151:6:task_idle	8	static
+../source/New_OSEK.c:81:6:GPIO00_IRQHandler	8	static
+../source/New_OSEK.c:89:5:main	16	static
+../source/New_OSEK.c:113:6:task_PWM1	8	static
+../source/New_OSEK.c:122:6:task_PWM2	4	static
+../source/New_OSEK.c:125:6:task_ISR_BTN	8	static
