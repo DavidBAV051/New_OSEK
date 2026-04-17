@@ -16,6 +16,8 @@
 #define MAX_NUMBER_TASKS 5
 #define CONFIGURED_TASKS 5
 
+#define MAX_PRIORITY 10
+
 #define E_OK       0
 #define E_OS_LIMIT 1
 #define E_OS_ID    2
@@ -121,12 +123,16 @@ void SysTick_Handler(void);
 void task_delay(u32 ticks);
 void task_delay_savedctxt(u32 ticks);
 
+/* Agregado en el Examen */
+void mutex_init(void);
+void semaphore(void);
+
+
 /* Task Prototypes */
 void task_idle(void);
 void task_ISR_BTN(void);
-void task_PWM1(void);
-void task_PWM2(void);
-void task_PWM3(void);
+void task_LEDON(void);
+void task_LEDOFF(void);
 
 /*==================================================================*/
 #endif /* OS_H_ */

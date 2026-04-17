@@ -113,6 +113,15 @@ void SysTick_Handler(void) {
 }
 
 /*==================================================================*/
+void mutex(void){
+
+}
+
+void semaphore(void){
+
+}
+
+/*==================================================================*/
 u8 activate_task(u8 Task_ID){
 	Context_Backup();
 	if(Task_ID >= MAX_NUMBER_TASKS){
@@ -171,15 +180,11 @@ void task_config(void){
 
 	task_arr[TASK_2_ID].Autostart = TRUE;
 	task_arr[TASK_2_ID].Priority = ONE;
-	task_arr[TASK_2_ID].DirTask = task_PWM1;
+	task_arr[TASK_2_ID].DirTask = task_LEDON;
 
 	task_arr[TASK_3_ID].Autostart = TRUE;
 	task_arr[TASK_3_ID].Priority = ONE;
-	task_arr[TASK_3_ID].DirTask = task_PWM2;
-
-	task_arr[TASK_4_ID].Autostart = TRUE;
-	task_arr[TASK_4_ID].Priority = ONE;
-	task_arr[TASK_4_ID].DirTask = task_PWM3;
+	task_arr[TASK_3_ID].DirTask = task_LEDOFF;
 
 }
 

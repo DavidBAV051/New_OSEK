@@ -24,6 +24,7 @@
 
 /*==================================================================*/
 /* --- Definitions --- */
+/* LED Definitions */
 #define LED_ROJO BOARD_LED_RED_GPIO_PIN
 #define LED_VERDE BOARD_LED_GREEN_GPIO_PIN
 #define LED_AZUL BOARD_LED_BLUE_GPIO_PIN
@@ -110,32 +111,14 @@ int main(void) {
     return ZERO ;
 }
 
-void task_PWM1(void){
-	while(ONE){
-		LED_GREEN_ON();
-		task_delay(1);
-		LED_GREEN_OFF();
-		task_delay(9);
-	}
+void task_LEDON(void){
+	LED_RED_ON();
 }
 
-void task_PWM2(void){
-	while(ONE){
-		LED_RED_ON();
-		task_delay(3);
-		LED_RED_OFF();
-		task_delay(7);
-	}
+void task_LEDOFF(void){
+	LED_RED_OFF();
 }
 
-void task_PWM3(void){
-	while(ONE){
-		LED_BLUE_ON();
-		task_delay(5);
-		LED_BLUE_OFF();
-		task_delay(5);
-	}
-}
 void task_ISR_BTN(void){
 	delay();
 	LED_GREEN_ON();
