@@ -25,28 +25,28 @@
 #define TRUE 1
 #define FALSE 0
 
-#define TASK_IDLE_ID 0
+#define TASK_IDLE_ID    0
 #define TASK_ISR_BTN_ID 1
-#define TASK_2_ID 2
-#define TASK_3_ID 3
-#define TASK_4_ID 4
+#define TASK_2_ID       2
+#define TASK_3_ID       3
+#define TASK_4_ID       4
 
-#define ZERO 0
-#define ONE 1
-#define TWO 2
+#define ZERO  0
+#define ONE   1
+#define TWO   2
 #define THREE 3
-#define FOUR 4
-#define FIVE 5
-#define SIX 6
+#define FOUR  4
+#define FIVE  5
+#define SIX   6
 #define SEVEN 7
 #define EIGHT 8
-#define NINE 9
+#define NINE  9
 
-#define U8_SIZE 255
+#define U8_SIZE    255
 #define STACK_SIZE 128
 
 /*==================================================================*/
-/* Context Backup*/
+/* Context Backup */
 #define Context_Backup() \
 	__asm volatile ("ldr r2, =temp_sp\n" \
 					"str r13, [r2]\n" \
@@ -73,27 +73,42 @@
 
 /*==================================================================*/
 /* Type definitions */
-typedef uint8_t u8;
+typedef uint8_t  u8;
 typedef uint16_t u16;
 typedef uint32_t u32;
 
-typedef enum{
+typedef enum {
 	SUSPENDED = 0,
 	READY,
 	RUNNING,
 	WAIT
 } TASK_STATES;
 
-typedef struct{
-	u8 Autostart;
-	u8 Priority;
-	u8 Pause;
-	TASK_STATES Estado;
-	void (*DirTask)(void);
-	void (*DirTask_Pause)(void);
+typedef struct {
+	u8            Autostart;
+	u8            Priority;
+	u8            Pause;
+	TASK_STATES   Estado;
+	void        (*DirTask)(void);
+	void        (*DirTask_Pause)(void);
 	unsigned long SP_Pause;
-	u32 task_counter;
-}Task_Control_Struct;
+	u32           task_counter;
+} Task_Control_Struct;
+
+/*==================================================================*/
+/* Agregador en Examen 2 */
+// Mutex
+typedef struct {
+    u8 locked; // Candado para recurso
+    u8 owner_id; // La tarea que va atomar
+    u8 waiting_task_id;
+} Mutex_t;
+
+// Semáforo
+typedef struct {
+    u8 count;
+    u8 waiting_task_id;
+} Semaphore_t;
 
 /*==================================================================*/
 /* Global Variables */
@@ -101,19 +116,21 @@ extern Task_Control_Struct task_arr[MAX_NUMBER_TASKS];
 extern unsigned long idle;
 extern unsigned long temp;
 extern unsigned long temp_sp;
-extern u8 current_task_id;
-extern volatile u8 interrupt_active;
-
-extern volatile u8 tick_count;
+extern u8            current_task_id;
+extern volatile u8   interrupt_active;
+extern volatile u8   tick_count;
 extern volatile bool td_flag;
 
+extern Mutex_t     led_mutex;
+extern Semaphore_t led_sem;
+
 /*==================================================================*/
-/* Function Protoypes */
+/* Function Prototypes */
 void task_config(void);
 
 void os_init(void);
-u8 activate_task(u8 Task_ID);
-u8 activate_task_ISR(u8 Task_ID);
+u8   activate_task(u8 Task_ID);
+u8   activate_task_ISR(u8 Task_ID);
 void terminate_task(void);
 void terminate_task_ISR(void);
 void chain_task(u8 Task_ID);
@@ -123,10 +140,6 @@ void SysTick_Handler(void);
 void task_delay(u32 ticks);
 void task_delay_savedctxt(u32 ticks);
 
-/* Agregado en el Examen */
-void mutex_init(void);
-void semaphore(void);
-
 
 /* Task Prototypes */
 void task_idle(void);
@@ -134,5 +147,14 @@ void task_ISR_BTN(void);
 void task_LEDON(void);
 void task_LEDOFF(void);
 
+
+/* En examen */
+void mutex_init(Mutex_t *m);
+void mutex_lock(Mutex_t *m);
+void mutex_unlock(Mutex_t *m);
+
+void sem_init(Semaphore_t *s, u8 initial_count);
+void sem_wait(Semaphore_t *s);
+void sem_signal(Semaphore_t *s);
 /*==================================================================*/
 #endif /* OS_H_ */

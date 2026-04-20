@@ -112,22 +112,35 @@ int main(void) {
 }
 
 void task_LEDON(void){
-	LED_RED_ON();
+	sem_wait(&led_sem);
+    while(ONE){
+        mutex_lock(&led_mutex);
+        LED_RED_ON();
+        mutex_unlock(&led_mutex);
+        sem_signal(&led_sem);
+    }
 }
 
 void task_LEDOFF(void){
-	LED_RED_OFF();
+	sem_wait(&led_sem);
+	while (ONE){
+		mutex_lock(&led_mutex);
+		LED_RED_OFF();
+		mutex_unlock(&led_mutex);
+	}
 }
 
 void task_ISR_BTN(void){
-	delay();
-	LED_GREEN_ON();
-	LED_BLUE_ON();
-	LED_RED_ON();
-	delay();
-	LED_BLUE_OFF();
-	LED_GREEN_OFF();
-	LED_RED_OFF();
-	terminate_task_ISR();
+    delay();
+    LED_GREEN_ON();
+    LED_BLUE_ON();
+    LED_RED_ON();
+    delay();
+    LED_BLUE_OFF();
+    LED_GREEN_OFF();
+    LED_RED_OFF();
+    sem_signal(&led_sem);
+
+    terminate_task_ISR();
 }
 
