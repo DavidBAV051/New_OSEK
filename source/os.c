@@ -7,6 +7,7 @@
 
 #include "os.h"
 #include "board.h"
+#include <string.h>
 
 /*==================================================================*/
 /* Variables */
@@ -18,6 +19,11 @@ u8 current_task_id = ZERO;
 u8 num_tasks_configured = CONFIGURED_TASKS;
 u8 volatile interrupt_active = ZERO;
 volatile bool td_flag = FALSE;
+
+/* Queues */
+Queue S_queues[MAX_QUEUES];
+u8 queue_pool[MAX_QUEUES][QUEUE_BUFFER_SIZE];
+u8 config_queues = 0;
 
 /*==================================================================*/
 void scheduler(void){
@@ -113,6 +119,119 @@ void SysTick_Handler(void) {
 }
 
 /*==================================================================*/
+/*==================================================================*/
+/* Quees Section */
+u8 init_queue(u32 permisos_mask, u8 ID, u32 max_elementos, u32 size_dato) {
+    if(config_queues >= MAX_QUEUES) {
+        return E_OS_LIMIT;
+    }
+
+    //Validar que los datos caben en nuestro buffer
+    if((max_elementos * size_dato) > QUEUE_BUFFER_SIZE) {
+        return E_OS_LIMIT;
+    }
+
+    //Tomar la siguiente queue disponible
+    Queue* q = &S_queues[config_queues];
+
+    q->ID = ID;
+    q->Read = 0;
+    q->Write = 0;
+    q->Size = max_elementos;
+    q->Current_count = 0;
+    q->Item_size = size_dato;
+    q->Task_permissions = permisos_mask;
+
+    q->data = queue_pool[config_queues];
+
+    config_queues++;
+
+    return E_OK;
+}
+
+u8 write_queue(u8 ID, void* ptr_write_dato, u32 wait_ticks) {
+	Queue* q = NULL;
+
+	    //Buscar la queue por su ID
+	    for(int i = 0; i < config_queues; i++){
+	        if(S_queues[i].ID == ID){
+	            q = &S_queues[i];
+	            break;
+	        }
+	    }
+	    if(q == NULL) return E_OS_ID;
+
+	    //Permisos
+	    if((q->Task_permissions & (1 << current_task_id)) == 0){
+	        return E_OS_LIMIT;
+	    }
+
+	    Enter_Critical();//Deshabilitar interrupciones
+
+	    //Espacio
+	    if(q->Current_count >= q->Size){
+	        Exit_Critical();
+	        if(wait_ticks > 0){
+	            task_delay(wait_ticks);
+	        }
+	        return E_OS_LIMIT; // Llena
+	    }
+
+	    //Calcular la dirección exacta donde escribir
+	    u32 offset = q->Write * q->Item_size;
+	    memcpy(&(q->data[offset]), ptr_write_dato, q->Item_size);
+
+	    //Actualizar apuntadores
+	    q->Write = (q->Write + 1) % q->Size;
+	    q->Current_count++;
+
+	    Exit_Critical();//Habilitar interrupciones
+
+	    return E_OK;
+}
+
+u8 read_queue(u8 ID, void* ptr_read_dato, u32 wait_ticks) {
+    Queue* q = NULL;
+
+    //Buscar la queue por su ID
+    for(int i = 0; i < config_queues; i++){
+        if(S_queues[i].ID == ID){
+            q = &S_queues[i];
+            break;
+        }
+    }
+    if(q == NULL) return E_OS_ID;//Queue no encontrada
+
+    //Permisos
+    if((q->Task_permissions & (1 << current_task_id)) == 0){
+        return E_OS_LIMIT; // Task no tiene permiso
+    }
+
+    Enter_Critical();//Deshabilitar interrupciones
+
+    //Queue vacía
+    if(q->Current_count == 0){
+        Exit_Critical();
+        if(wait_ticks > 0){
+            task_delay(wait_ticks);
+        }
+        return E_OS_LIMIT; //No había datos
+    }
+
+    //Calcular el offset y copiar el dato
+    u32 offset = q->Read * q->Item_size;
+    memcpy(ptr_read_dato, &(q->data[offset]), q->Item_size);
+
+    //Actualizar apuntadores
+    q->Read = (q->Read + 1) % q->Size;
+    q->Current_count--;
+
+    Exit_Critical();//Habilitar interrupciones
+
+    return E_OK;
+}
+
+/*==================================================================*/
 u8 activate_task(u8 Task_ID){
 	Context_Backup();
 	if(Task_ID >= MAX_NUMBER_TASKS){
@@ -176,10 +295,6 @@ void task_config(void){
 	task_arr[TASK_3_ID].Autostart = TRUE;
 	task_arr[TASK_3_ID].Priority = ONE;
 	task_arr[TASK_3_ID].DirTask = task_PWM2;
-
-	task_arr[TASK_4_ID].Autostart = TRUE;
-	task_arr[TASK_4_ID].Priority = ONE;
-	task_arr[TASK_4_ID].DirTask = task_PWM3;
 
 }
 

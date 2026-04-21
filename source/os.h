@@ -16,6 +16,9 @@
 #define MAX_NUMBER_TASKS 5
 #define CONFIGURED_TASKS 5
 
+#define MAX_QUEUES 3
+#define QUEUE_BUFFER_SIZE 128
+
 #define E_OK       0
 #define E_OS_LIMIT 1
 #define E_OS_ID    2
@@ -93,6 +96,20 @@ typedef struct{
 	u32 task_counter;
 }Task_Control_Struct;
 
+/*=== Queus ===*/
+#define Enter_Critical()  __asm volatile("cpsid i") // Interrupt disabl
+#define Exit_Critical()   __asm volatile("cpsie i") // Interupt enable
+
+typedef struct {
+    u8 ID;
+    u32 Read;
+    u32 Write;
+    u32 Size;
+    u32 Current_count;
+    u32 Item_size;
+    u32 Task_permissions;
+    u8* data;
+} Queue;
 /*==================================================================*/
 /* Global Variables */
 extern Task_Control_Struct task_arr[MAX_NUMBER_TASKS];
@@ -126,7 +143,11 @@ void task_idle(void);
 void task_ISR_BTN(void);
 void task_PWM1(void);
 void task_PWM2(void);
-void task_PWM3(void);
+
+/* Queues Protoype */
+u8 init_queue(u32 permisos_mask, u8 ID, u32 max_elementos, u32 size_dato);
+u8 write_queue(u8 ID, void* ptr_write_dato, u32 wait_ticks);
+u8 read_queue(u8 ID, void* ptr_read_dato, u32 wait_ticks);
 
 /*==================================================================*/
 #endif /* OS_H_ */
