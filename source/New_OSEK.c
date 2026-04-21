@@ -103,6 +103,12 @@ int main(void) {
 
 	SysTick_Config(SystemCoreClock / TIME_PARAM);
 
+	// --- INICIALIZACIÓN DE QUEUES ---
+	//Permisos
+	u32 permisos_queue = (1 << TASK_2_ID) | (1 << TASK_3_ID);
+
+	init_queue(permisos_queue, 1, FIVE, sizeof(u32));
+
 	task_config();
 	os_init();
     while(ONE) {
@@ -111,20 +117,41 @@ int main(void) {
 }
 
 void task_PWM1(void){
+	u32 contador = ZERO;
+	u8 status;
+
 	while(ONE){
-		LED_GREEN_ON();
-		task_delay(1);
-		LED_GREEN_OFF();
-		task_delay(9);
+		contador++; //Generar nuevo dato
+
+		//Intentar escribir en la queue 1
+		status = write_queue(ONE, &contador, ZERO);
+
+		if(status == E_OK){
+			LED_GREEN_ON();
+			task_delay(TWO);
+			LED_GREEN_OFF();
+		}
+
+		task_delay(EIGHT);
 	}
 }
 
 void task_PWM2(void){
+	u32 dato_recibido = ZERO;
+	u8 status;
+
 	while(ONE){
-		LED_RED_ON();
-		task_delay(3);
-		LED_RED_OFF();
-		task_delay(7);
+		//Intentar leer de la queue 1
+		status = read_queue(ONE, &dato_recibido, ZERO);
+
+		if(status == E_OK){
+			LED_GREEN_OFF();
+			LED_RED_ON();
+			task_delay(TWO);
+			LED_RED_OFF();
+		} else {
+			task_delay(ONE);
+		}
 	}
 }
 

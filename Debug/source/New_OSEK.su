@@ -11,7 +11,6 @@ C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_gpio
 ../source/New_OSEK.c:70:6:Init_Boton_Interrupt	16	static
 ../source/New_OSEK.c:81:6:GPIO00_IRQHandler	8	static
 ../source/New_OSEK.c:89:5:main	16	static
-../source/New_OSEK.c:113:6:task_PWM1	8	static
-../source/New_OSEK.c:122:6:task_PWM2	8	static
-../source/New_OSEK.c:131:6:task_PWM3	8	static
-../source/New_OSEK.c:139:6:task_ISR_BTN	8	static
+../source/New_OSEK.c:119:6:task_PWM1	16	static
+../source/New_OSEK.c:139:6:task_PWM2	16	static
+../source/New_OSEK.c:158:6:task_ISR_BTN	8	static
