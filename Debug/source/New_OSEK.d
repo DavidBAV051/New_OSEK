@@ -103,6 +103,7 @@ source/New_OSEK.o source/New_OSEK.d: ../source/New_OSEK.c \
  C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\component\serial_manager/fsl_component_serial_port_uart.h \
  C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\component\uart/fsl_adapter_uart.h \
  C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_port.h \
+ C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_ctimer.h \
  ../source/os.h
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\board/board.h:
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\board/clock_config.h:
@@ -208,4 +209,5 @@ C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\component\serial
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\component\serial_manager/fsl_component_serial_port_uart.h:
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\component\uart/fsl_adapter_uart.h:
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_port.h:
+C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_ctimer.h:
 ../source/os.h:

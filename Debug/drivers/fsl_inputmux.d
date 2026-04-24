@@ -1,6 +1,6 @@
-board/clock_config.o board/clock_config.d: ../board/clock_config.c \
- C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_clock.h \
- C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_common.h \
+drivers/fsl_inputmux.o drivers/fsl_inputmux.d: ../drivers/fsl_inputmux.c \
+ ../drivers/fsl_inputmux.h ../drivers/fsl_inputmux_connections.h \
+ ../drivers/fsl_common.h \
  C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\device/fsl_device_registers.h \
  C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\device/MCXN947_cm33_core0.h \
  C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\device\periph/PERI_ADC.h \
@@ -89,14 +89,11 @@ board/clock_config.o board/clock_config.d: ../board/clock_config.c \
  C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\device\periph/PERI_VREF.h \
  C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\device\periph/PERI_WUU.h \
  C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\device\periph/PERI_WWDT.h \
- C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_common_arm.h \
- C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_clock.h \
- C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_reset.h \
- ../board/clock_config.h \
- C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_common.h \
- C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_spc.h
-C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_clock.h:
-C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_common.h:
+ ../drivers/fsl_common_arm.h ../drivers/fsl_clock.h \
+ ../drivers/fsl_reset.h
+../drivers/fsl_inputmux.h:
+../drivers/fsl_inputmux_connections.h:
+../drivers/fsl_common.h:
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\device/fsl_device_registers.h:
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\device/MCXN947_cm33_core0.h:
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\device\periph/PERI_ADC.h:
@@ -185,9 +182,6 @@ C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\device\periph/PE
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\device\periph/PERI_VREF.h:
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\device\periph/PERI_WUU.h:
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\device\periph/PERI_WWDT.h:
-C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_common_arm.h:
-C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_clock.h:
-C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_reset.h:
-../board/clock_config.h:
-C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_common.h:
-C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_spc.h:
+../drivers/fsl_common_arm.h:
+../drivers/fsl_clock.h:
+../drivers/fsl_reset.h:

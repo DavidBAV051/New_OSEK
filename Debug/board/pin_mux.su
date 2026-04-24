@@ -1,7 +1,8 @@
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_clock.h:1492:20:CLOCK_EnableClock	24	static
 C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_port.h:360:20:PORT_SetPinConfig	32	static
-../board/pin_mux.c:322:6:BOARD_InitBootPins	8	static
-../board/pin_mux.c:348:6:BOARD_InitDEBUG_UARTPins	16	static
-../board/pin_mux.c:422:6:BOARD_InitSWD_DEBUGPins	24	static
-../board/pin_mux.c:519:6:BOARD_InitLEDsPins	32	static
-../board/pin_mux.c:641:6:BOARD_InitBUTTONsPins	24	static
+C:\Users\david\OneDrive\Documentos\Sistemas_Operativos\New_OSEK\drivers/fsl_port.h:463:20:PORT_SetPinMux	24	static
+../board/pin_mux.c:318:6:BOARD_InitBootPins	8	static
+../board/pin_mux.c:346:6:BOARD_InitDEBUG_UARTPins	16	static
+../board/pin_mux.c:446:6:BOARD_InitSWD_DEBUGPins	24	static
+../board/pin_mux.c:543:6:BOARD_InitLEDsPins	32	static
+../board/pin_mux.c:665:6:BOARD_InitBUTTONsPins	24	static

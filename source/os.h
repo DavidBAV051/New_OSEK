@@ -13,8 +13,8 @@
 
 /*==================================================================*/
 /* Definitions */
-#define MAX_NUMBER_TASKS 5
-#define CONFIGURED_TASKS 5
+#define MAX_NUMBER_TASKS 8
+#define CONFIGURED_TASKS 8
 
 #define E_OK       0
 #define E_OS_LIMIT 1
@@ -24,10 +24,13 @@
 #define FALSE 0
 
 #define TASK_IDLE_ID 0
-#define TASK_ISR_BTN_ID 1
+#define TASK_ISR_TMR_ID 1
 #define TASK_2_ID 2
 #define TASK_3_ID 3
 #define TASK_4_ID 4
+#define TASK_5_ID 5
+#define TASK_6_ID 6
+#define TASK_7_ID 7
 
 #define ZERO 0
 #define ONE 1
@@ -42,6 +45,22 @@
 
 #define U8_SIZE 255
 #define STACK_SIZE 128
+
+/* Ctimer defs*/
+#define UART1_CTIMER          CTIMER0
+#define UART1_CTIMER_IRQn     CTIMER0_IRQn
+#define UART1_CAPTURE_CHANNEL kCTIMER_Capture_0
+#define UART1_MATCH_CHANNEL   kCTIMER_Match_1
+
+#define UART2_CTIMER          CTIMER1
+#define UART2_CTIMER_IRQn     CTIMER1_IRQn
+#define UART2_CAPTURE_CHANNEL kCTIMER_Capture_0
+#define UART2_MATCH_CHANNEL   kCTIMER_Match_1
+
+#define UART3_CTIMER          CTIMER2
+#define UART3_CTIMER_IRQn     CTIMER2_IRQn
+#define UART3_CAPTURE_CHANNEL kCTIMER_Capture_0
+#define UART3_MATCH_CHANNEL   kCTIMER_Match_1
 
 /*==================================================================*/
 /* Context Backup*/
@@ -94,6 +113,19 @@ typedef struct{
 }Task_Control_Struct;
 
 /*==================================================================*/
+/* Agregador en Examen 2 */
+// Semáforo
+typedef struct {
+    u8 count;
+    u8 waiting_task_id;
+} Semaphore_t;
+
+// Ctimer Struct
+typedef struct {
+    u8 bit_count;
+    u8 rx_buffer;
+} SWUART_State_t;
+/*==================================================================*/
 /* Global Variables */
 extern Task_Control_Struct task_arr[MAX_NUMBER_TASKS];
 extern unsigned long idle;
@@ -123,10 +155,18 @@ void task_delay_savedctxt(u32 ticks);
 
 /* Task Prototypes */
 void task_idle(void);
-void task_ISR_BTN(void);
+void task_ISR_TMR(void);
+
+void task_UART1(void);
+void task_UART2(void);
+void task_UART3(void);
+
 void task_PWM1(void);
 void task_PWM2(void);
 void task_PWM3(void);
 
+void sem_init(Semaphore_t *s, u8 initial_count);
+void sem_wait(Semaphore_t *s);
+void sem_signal(Semaphore_t *s);
 /*==================================================================*/
 #endif /* OS_H_ */

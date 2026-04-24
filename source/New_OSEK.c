@@ -17,6 +17,7 @@
 #include "fsl_debug_console.h"
 #include "fsl_gpio.h"
 #include "fsl_port.h"
+#include "fsl_ctimer.h"
 
 /*==================================================================*/
 /* --- Additional Libs --- */
@@ -34,11 +35,29 @@
 #define BOTON_PIN  6
 #define BOTON_IRQ  GPIO00_IRQn
 
+/* UART Ports*/
+#define UART_PORT GPIO1
+#define UART1_PIN 17U
+#define UART2_PIN 15U
+#define UART3_PIN 16U
+
 /* Systick Time Parameter */
 #define TIME_PARAM 1000U
-
+#define PRESSCALE 1000000U
 /* Delay Time Parameter */
 #define DELAY_PARAM 50000U
+
+/* UART var */
+volatile u8 rx_byte_uart1 = 0;
+volatile u8 rx_byte_uart2 = 0;
+volatile u8 rx_byte_uart3 = 0;
+volatile u32 bit_ticks = 104;
+SWUART_State_t uart1_state;
+SWUART_State_t uart2_state;
+SWUART_State_t uart3_state;
+u8 received_data_1 = ONE;
+u8 received_data_2 = ONE;
+u8 received_data_3 = FIVE;
 
 /*==================================================================*/
 /* --- BASE Init --- */
@@ -48,9 +67,17 @@ void BOARD_InitHardware(void)
     CLOCK_SetClkDiv(kCLOCK_DivFlexcom4Clk, 1u);
     CLOCK_AttachClk(BOARD_DEBUG_UART_CLK_ATTACH);
 
+    CLOCK_SetClkDiv(kCLOCK_DivCtimer0Clk, 1u);
+    CLOCK_AttachClk(kFRO_HF_to_CTIMER0);
+
+    CLOCK_SetClkDiv(kCLOCK_DivCtimer1Clk, 1u);
+    CLOCK_AttachClk(kFRO_HF_to_CTIMER1);
+
     /* enable clock for GPIO*/
     CLOCK_EnableClock(kCLOCK_Gpio0);
     CLOCK_EnableClock(kCLOCK_Gpio1);
+    CLOCK_EnableClock(kCLOCK_Timer0);
+    CLOCK_EnableClock(kCLOCK_Timer1);
 
 	BOARD_InitBootPins();
 	BOARD_InitBootPeripherals();
@@ -67,24 +94,134 @@ void delay(void){
 
 /*==================================================================*/
 /* Function Prototypes */
-void Init_Boton_Interrupt(void) {
-    gpio_pin_config_t sw_config = {
-        kGPIO_DigitalInput,
-        0,
-    };
+void Init_UART1_Timer(void) {
+    ctimer_config_t config;
+    ctimer_match_config_t matchConfig;
 
-    GPIO_SetPinInterruptConfig(BOTON_GPIO, BOTON_PIN, kGPIO_InterruptFallingEdge);
-    EnableIRQ(BOTON_IRQ);
+    CTIMER_GetDefaultConfig(&config);
+    config.prescale = 47;
+    // Lo queremos a 1Mhz, porque 1M/9600 = 104us
+    CTIMER_Init(UART1_CTIMER, &config);
 
-    GPIO_PinInit(BOTON_GPIO, BOTON_PIN, &sw_config);
+    CTIMER_SetupCapture(UART1_CTIMER,
+                        UART1_CAPTURE_CHANNEL,
+                        kCTIMER_Capture_FallEdge,
+                        true); // true = enable capture interrupt
+
+    matchConfig.enableCounterReset = false; // No resetear timer
+    matchConfig.enableCounterStop  = false; // No para timer
+    matchConfig.matchValue         = 0xFFFFFFFF; // dummy
+    matchConfig.outControl         = kCTIMER_Output_NoAction;
+    matchConfig.outPinInitState    = false;
+    matchConfig.enableInterrupt    = false; // Deshabilitada hasta el star bit
+
+    CTIMER_SetupMatch(UART1_CTIMER, UART1_MATCH_CHANNEL, &matchConfig);
+
+    EnableIRQ(UART1_CTIMER_IRQn);
 }
-void GPIO00_IRQHandler(void) {
-    activate_task_ISR(TASK_ISR_BTN_ID);
 
-	GPIO_GpioClearInterruptFlags(BOTON_GPIO, 1U << BOTON_PIN);
+void Init_UART2_Timer(void) {
+    ctimer_config_t config;
+    ctimer_match_config_t matchConfig;
 
+    CTIMER_GetDefaultConfig(&config);
+    config.prescale = 47;
+    // Lo queremos a 1Mhz, porque 1M/9600 = 104us
+    CTIMER_Init(UART2_CTIMER, &config);
+
+    CTIMER_SetupCapture(UART2_CTIMER,
+                        UART2_CAPTURE_CHANNEL,
+                        kCTIMER_Capture_FallEdge,
+                        true); // true = enable capture interrupt
+
+    matchConfig.enableCounterReset = false; // No resetear timer
+    matchConfig.enableCounterStop  = false; // No para timer
+    matchConfig.matchValue         = 0xFFFFFFFF; // dummy
+    matchConfig.outControl         = kCTIMER_Output_NoAction;
+    matchConfig.outPinInitState    = false;
+    matchConfig.enableInterrupt    = false; // Deshabilitada hasta el star bit
+
+    CTIMER_SetupMatch(UART2_CTIMER, UART2_MATCH_CHANNEL, &matchConfig);
+
+    EnableIRQ(UART2_CTIMER_IRQn);
 }
 
+void CTIMER0_IRQHandler(void) {
+    uint32_t flags = CTIMER_GetStatusFlags(UART1_CTIMER);
+
+    if (flags & kCTIMER_Capture0Flag) {
+        CTIMER_ClearStatusFlags(UART1_CTIMER, kCTIMER_Capture0Flag);
+
+        uint32_t capture_val = UART1_CTIMER->CR[UART1_CAPTURE_CHANNEL];
+
+        UART1_CTIMER->MR[UART1_MATCH_CHANNEL] = capture_val + (bit_ticks + (bit_ticks / 2));
+
+        UART1_CTIMER->CCR &= ~(CTIMER_CCR_CAP0I_MASK);
+        UART1_CTIMER->MCR |= CTIMER_MCR_MR1I_MASK;
+
+        uart1_state.bit_count = 0;
+        uart1_state.rx_buffer = 0;
+    }
+
+    if (flags & kCTIMER_Match1Flag) {
+
+        if (uart1_state.bit_count < 8) {
+             u8 pin_state = GPIO_PinRead(UART_PORT, UART1_PIN);
+             uart1_state.rx_buffer |= (pin_state << uart1_state.bit_count);
+
+            uart1_state.bit_count++;
+
+            UART1_CTIMER->MR[UART1_MATCH_CHANNEL] += bit_ticks;
+        } else {
+            rx_byte_uart1 = uart1_state.rx_buffer;
+
+            activate_task_ISR(TASK_5_ID);
+
+            UART1_CTIMER->MCR &= ~(CTIMER_MCR_MR1I_MASK);
+            UART1_CTIMER->CCR |= CTIMER_CCR_CAP0I_MASK;
+        }
+
+        CTIMER_ClearStatusFlags(UART1_CTIMER, kCTIMER_Match1Flag);
+    }
+}
+void CTIMER1_IRQHandler(void) {
+    uint32_t flags = CTIMER_GetStatusFlags(UART2_CTIMER);
+
+    if (flags & kCTIMER_Capture0Flag) {
+        CTIMER_ClearStatusFlags(UART2_CTIMER, kCTIMER_Capture0Flag);
+
+        uint32_t capture_val = UART2_CTIMER->CR[UART2_CAPTURE_CHANNEL];
+
+        UART2_CTIMER->MR[UART2_MATCH_CHANNEL] = capture_val + (bit_ticks + (bit_ticks / 2));
+
+        UART2_CTIMER->CCR &= ~(CTIMER_CCR_CAP0I_MASK);
+        UART2_CTIMER->MCR |= CTIMER_MCR_MR1I_MASK;
+
+        uart2_state.bit_count = 0;
+        uart2_state.rx_buffer = 0;
+    }
+
+    if (flags & kCTIMER_Match1Flag) {
+
+        if (uart2_state.bit_count < 8) {
+             u8 pin_state = GPIO_PinRead(UART_PORT, UART2_PIN);
+             uart2_state.rx_buffer |= (pin_state << uart2_state.bit_count);
+
+            uart2_state.bit_count++;
+
+            UART2_CTIMER->MR[UART2_MATCH_CHANNEL] += bit_ticks;
+        } else {
+            rx_byte_uart2 = uart2_state.rx_buffer;
+
+            activate_task_ISR(TASK_6_ID);
+
+            UART2_CTIMER->MCR &= ~(CTIMER_MCR_MR1I_MASK);
+            UART2_CTIMER->CCR |= CTIMER_CCR_CAP0I_MASK;
+        }
+
+        CTIMER_ClearStatusFlags(UART2_CTIMER, kCTIMER_Match1Flag);
+    }
+}
 /*==================================================================*/
 int main(void) {
     gpio_pin_config_t led_config = {
@@ -92,7 +229,6 @@ int main(void) {
         0,
     };
     BOARD_InitHardware();
-    Init_Boton_Interrupt();
 
 	GPIO_PinInit(GPIO0, LED_ROJO, &led_config);
 	GPIO_PinInit(GPIO0, LED_VERDE, &led_config);
@@ -100,6 +236,10 @@ int main(void) {
 	LED_GREEN_OFF();
 	LED_RED_OFF();
 	LED_BLUE_OFF();
+	Init_UART1_Timer();
+	Init_UART2_Timer();
+	CTIMER_StartTimer(UART1_CTIMER);
+	CTIMER_StartTimer(UART2_CTIMER);
 
 	SysTick_Config(SystemCoreClock / TIME_PARAM);
 
@@ -110,33 +250,50 @@ int main(void) {
     return ZERO ;
 }
 
+/* UARTS */
+void task_UART1(void){
+	received_data_1 = rx_byte_uart1;
+	terminate_task_ISR();
+}
+
+void task_UART2(void){
+	received_data_2 = rx_byte_uart2;
+	terminate_task_ISR();
+}
+
+void task_UART3(void){
+	received_data_3 = rx_byte_uart3;
+	terminate_task_ISR();
+}
+
+/* PWMs */
 void task_PWM1(void){
 	while(ONE){
 		LED_GREEN_ON();
-		task_delay(1);
+		task_delay(received_data_1);
 		LED_GREEN_OFF();
-		task_delay(9);
+		task_delay(10-received_data_1);
 	}
 }
 
 void task_PWM2(void){
 	while(ONE){
 		LED_RED_ON();
-		task_delay(3);
+		task_delay(received_data_2);
 		LED_RED_OFF();
-		task_delay(7);
+		task_delay(10-received_data_2);
 	}
 }
 
 void task_PWM3(void){
 	while(ONE){
 		LED_BLUE_ON();
-		task_delay(5);
+		task_delay(received_data_3);
 		LED_BLUE_OFF();
-		task_delay(5);
+		task_delay(10-received_data_3);
 	}
 }
-void task_ISR_BTN(void){
+void task_ISR_TMR(void){
 	delay();
 	LED_GREEN_ON();
 	LED_BLUE_ON();
@@ -145,5 +302,5 @@ void task_ISR_BTN(void){
 	LED_BLUE_OFF();
 	LED_GREEN_OFF();
 	LED_RED_OFF();
-	terminate_task_ISR();
+//	terminate_task_ISR();
 }

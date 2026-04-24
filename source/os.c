@@ -113,6 +113,40 @@ void SysTick_Handler(void) {
 }
 
 /*==================================================================*/
+
+void sem_init(Semaphore_t *s, u8 initial_count){
+    s->count           = initial_count;
+    s->waiting_task_id = U8_SIZE;
+}
+
+void sem_wait(Semaphore_t *s){
+    Context_Backup();
+
+    if(s->count > ZERO){
+        s->count--;
+    } else {
+        s->waiting_task_id = current_task_id;
+
+        task_arr[current_task_id].Estado = WAIT;
+        task_arr[current_task_id].Pause = TRUE;
+        task_arr[current_task_id].DirTask_Pause = (void (*)(void))temp;
+        task_arr[current_task_id].SP_Pause = temp_sp;
+
+        scheduler();
+    }
+}
+
+void sem_signal(Semaphore_t *s){
+    if(s->waiting_task_id != U8_SIZE){
+        u8 waiting         = s->waiting_task_id;
+        s->waiting_task_id = U8_SIZE;
+        task_arr[waiting].Estado = READY;
+    } else {
+        s->count++;
+    }
+}
+
+/*==================================================================*/
 u8 activate_task(u8 Task_ID){
 	Context_Backup();
 	if(Task_ID >= MAX_NUMBER_TASKS){
@@ -165,10 +199,11 @@ void task_config(void){
 	task_arr[TASK_IDLE_ID].Priority = ZERO;
 	task_arr[TASK_IDLE_ID].DirTask = task_idle;
 
-	task_arr[TASK_ISR_BTN_ID].Autostart = FALSE;
-	task_arr[TASK_ISR_BTN_ID].Priority = TWO;
-	task_arr[TASK_ISR_BTN_ID].DirTask = task_ISR_BTN;
+	task_arr[TASK_ISR_TMR_ID].Autostart = FALSE;
+	task_arr[TASK_ISR_TMR_ID].Priority = FIVE;
+	task_arr[TASK_ISR_TMR_ID].DirTask = task_ISR_TMR;
 
+	// Para los Pwms
 	task_arr[TASK_2_ID].Autostart = TRUE;
 	task_arr[TASK_2_ID].Priority = ONE;
 	task_arr[TASK_2_ID].DirTask = task_PWM1;
@@ -180,6 +215,19 @@ void task_config(void){
 	task_arr[TASK_4_ID].Autostart = TRUE;
 	task_arr[TASK_4_ID].Priority = ONE;
 	task_arr[TASK_4_ID].DirTask = task_PWM3;
+
+	//Para las uarts
+	task_arr[TASK_5_ID].Autostart = FALSE;
+	task_arr[TASK_5_ID].Priority = ONE;
+	task_arr[TASK_5_ID].DirTask = task_UART1;
+
+	task_arr[TASK_6_ID].Autostart = FALSE;
+	task_arr[TASK_6_ID].Priority = ONE;
+	task_arr[TASK_6_ID].DirTask = task_UART2;
+
+	task_arr[TASK_7_ID].Autostart = FALSE;
+	task_arr[TASK_7_ID].Priority = ONE;
+	task_arr[TASK_7_ID].DirTask = task_UART3;
 
 }
 
