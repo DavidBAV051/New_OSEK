@@ -57,7 +57,7 @@ SWUART_State_t uart2_state;
 SWUART_State_t uart3_state;
 u8 received_data_1 = ONE;
 u8 received_data_2 = ONE;
-u8 received_data_3 = FIVE;
+u8 received_data_3 = ONE;
 
 /*==================================================================*/
 /* --- BASE Init --- */
@@ -73,11 +73,15 @@ void BOARD_InitHardware(void)
     CLOCK_SetClkDiv(kCLOCK_DivCtimer1Clk, 1u);
     CLOCK_AttachClk(kFRO_HF_to_CTIMER1);
 
+    CLOCK_SetClkDiv(kCLOCK_DivCtimer2Clk, 1u);
+	CLOCK_AttachClk(kFRO_HF_to_CTIMER2);
+
     /* enable clock for GPIO*/
     CLOCK_EnableClock(kCLOCK_Gpio0);
     CLOCK_EnableClock(kCLOCK_Gpio1);
     CLOCK_EnableClock(kCLOCK_Timer0);
     CLOCK_EnableClock(kCLOCK_Timer1);
+    CLOCK_EnableClock(kCLOCK_Timer2);
 
 	BOARD_InitBootPins();
 	BOARD_InitBootPeripherals();
@@ -146,6 +150,32 @@ void Init_UART2_Timer(void) {
     EnableIRQ(UART2_CTIMER_IRQn);
 }
 
+void Init_UART3_Timer(void) {
+    ctimer_config_t config;
+    ctimer_match_config_t matchConfig;
+
+    CTIMER_GetDefaultConfig(&config);
+    config.prescale = 47;
+    // Lo queremos a 1Mhz, porque 1M/9600 = 104us
+    CTIMER_Init(UART3_CTIMER, &config);
+
+    CTIMER_SetupCapture(UART3_CTIMER,
+                        UART3_CAPTURE_CHANNEL,
+                        kCTIMER_Capture_FallEdge,
+                        true); // true = enable capture interrupt
+
+    matchConfig.enableCounterReset = false; // No resetear timer
+    matchConfig.enableCounterStop  = false; // No para timer
+    matchConfig.matchValue         = 0xFFFFFFFF; // dummy
+    matchConfig.outControl         = kCTIMER_Output_NoAction;
+    matchConfig.outPinInitState    = false;
+    matchConfig.enableInterrupt    = false; // Deshabilitada hasta el star bit
+
+    CTIMER_SetupMatch(UART3_CTIMER, UART3_MATCH_CHANNEL, &matchConfig);
+
+    EnableIRQ(UART3_CTIMER_IRQn);
+}
+
 void CTIMER0_IRQHandler(void) {
     uint32_t flags = CTIMER_GetStatusFlags(UART1_CTIMER);
 
@@ -184,6 +214,7 @@ void CTIMER0_IRQHandler(void) {
         CTIMER_ClearStatusFlags(UART1_CTIMER, kCTIMER_Match1Flag);
     }
 }
+
 void CTIMER1_IRQHandler(void) {
     uint32_t flags = CTIMER_GetStatusFlags(UART2_CTIMER);
 
@@ -222,6 +253,46 @@ void CTIMER1_IRQHandler(void) {
         CTIMER_ClearStatusFlags(UART2_CTIMER, kCTIMER_Match1Flag);
     }
 }
+
+void CTIMER2_IRQHandler(void) {
+    uint32_t flags = CTIMER_GetStatusFlags(UART3_CTIMER);
+
+    if (flags & kCTIMER_Capture0Flag) {
+        CTIMER_ClearStatusFlags(UART3_CTIMER, kCTIMER_Capture0Flag);
+
+        uint32_t capture_val = UART3_CTIMER->CR[UART3_CAPTURE_CHANNEL];
+
+        UART3_CTIMER->MR[UART2_MATCH_CHANNEL] = capture_val + (bit_ticks + (bit_ticks / 2));
+
+        UART3_CTIMER->CCR &= ~(CTIMER_CCR_CAP0I_MASK);
+        UART3_CTIMER->MCR |= CTIMER_MCR_MR1I_MASK;
+
+        uart3_state.bit_count = 0;
+        uart3_state.rx_buffer = 0;
+    }
+
+    if (flags & kCTIMER_Match1Flag) {
+
+        if (uart3_state.bit_count < 8) {
+             u8 pin_state = GPIO_PinRead(UART_PORT, UART3_PIN);
+             uart3_state.rx_buffer |= (pin_state << uart3_state.bit_count);
+
+            uart3_state.bit_count++;
+
+            UART3_CTIMER->MR[UART3_MATCH_CHANNEL] += bit_ticks;
+        } else {
+            rx_byte_uart3 = uart3_state.rx_buffer;
+
+            activate_task_ISR(TASK_7_ID);
+
+            UART3_CTIMER->MCR &= ~(CTIMER_MCR_MR1I_MASK);
+            UART3_CTIMER->CCR |= CTIMER_CCR_CAP0I_MASK;
+        }
+
+        CTIMER_ClearStatusFlags(UART3_CTIMER, kCTIMER_Match1Flag);
+    }
+}
+
 /*==================================================================*/
 int main(void) {
     gpio_pin_config_t led_config = {
@@ -238,8 +309,10 @@ int main(void) {
 	LED_BLUE_OFF();
 	Init_UART1_Timer();
 	Init_UART2_Timer();
+	Init_UART3_Timer();
 	CTIMER_StartTimer(UART1_CTIMER);
 	CTIMER_StartTimer(UART2_CTIMER);
+	CTIMER_StartTimer(UART3_CTIMER);
 
 	SysTick_Config(SystemCoreClock / TIME_PARAM);
 
@@ -294,13 +367,13 @@ void task_PWM3(void){
 	}
 }
 void task_ISR_TMR(void){
-	delay();
-	LED_GREEN_ON();
-	LED_BLUE_ON();
-	LED_RED_ON();
-	delay();
-	LED_BLUE_OFF();
-	LED_GREEN_OFF();
-	LED_RED_OFF();
+//	delay();
+//	LED_GREEN_ON();
+//	LED_BLUE_ON();
+//	LED_RED_ON();
+//	delay();
+//	LED_BLUE_OFF();
+//	LED_GREEN_OFF();
+//	LED_RED_OFF();
 //	terminate_task_ISR();
 }

@@ -333,6 +333,7 @@ BOARD_InitDEBUG_UARTPins:
     slew_rate: fast, open_drain: disable, drive_strength: low, pull_select: down, pull_enable: disable, passive_filter: disable, input_buffer: enable, invert_input: normal}
   - {pin_num: F4, peripheral: CTIMER0, signal: 'CAPTURE, 0', pin_signal: PIO1_17/FC5_P1/FC3_P5/CT_INP13/SCT0_OUT7/FLEXIO0_D25/SMARTDMA_PIO13/PLU_OUT5/ENET0_RXD3/I3C1_SCL/ADC1_A17}
   - {pin_num: E4, peripheral: CTIMER1, signal: 'CAPTURE, 0', pin_signal: PIO1_15/WUU0_IN13/FC3_P3/CT_INP11/SCT0_IN5/FLEXIO0_D23/SMARTDMA_PIO11/PLU_IN3/ENET0_RXD1/I3C1_PUR/TSI0_CH24/ADC1_A15}
+  - {pin_num: F6, peripheral: CTIMER2, signal: 'CAPTURE, 0', pin_signal: PIO1_16/WUU0_IN14/FC5_P0/FC3_P4/CT_INP12/SCT0_OUT6/FLEXIO0_D24/SMARTDMA_PIO12/PLU_OUT4/ENET0_RXD2/I3C1_SDA/ADC1_A16}
  * BE CAREFUL MODIFYING THIS COMMENT - IT IS YAML SETTINGS FOR TOOLS ***********
  */
 /* clang-format on */
@@ -353,11 +354,23 @@ void BOARD_InitDEBUG_UARTPins(void)
     INPUTMUX_AttachSignal(INPUTMUX0, 0U, kINPUTMUX_CtimerInp13ToTimer0Captsel);
     /* Ctimer input 11 is selected for TIMER1 CAPTSEL 0 */
     INPUTMUX_AttachSignal(INPUTMUX0, 0U, kINPUTMUX_CtimerInp11ToTimer1Captsel);
+    /* Ctimer input 12 is selected for TIMER2 CAPTSEL 0 */
+    INPUTMUX_AttachSignal(INPUTMUX0, 0U, kINPUTMUX_CtimerInp12ToTimer2Captsel);
 
     /* PORT1_15 (pin E4) is configured as CT_INP11 */
     PORT_SetPinMux(PORT1, 15U, kPORT_MuxAlt4);
 
     PORT1->PCR[15] = ((PORT1->PCR[15] &
+                       /* Mask bits to zero which are setting */
+                       (~(PORT_PCR_IBE_MASK)))
+
+                      /* Input Buffer Enable: Enables. */
+                      | PORT_PCR_IBE(PCR_IBE_ibe1));
+
+    /* PORT1_16 (pin F6) is configured as CT_INP12 */
+    PORT_SetPinMux(PORT1, 16U, kPORT_MuxAlt4);
+
+    PORT1->PCR[16] = ((PORT1->PCR[16] &
                        /* Mask bits to zero which are setting */
                        (~(PORT_PCR_IBE_MASK)))
 

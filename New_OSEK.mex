@@ -341,6 +341,11 @@
                         <data>true</data>
                      </feature>
                   </dependency>
+                  <dependency resourceType="Peripheral" resourceId="CTIMER2" description="Peripheral CTIMER2 signals are routed in the Pins Tool, but the peripheral is not initialized in the Peripherals Tool." problem_level="1" source="Pins:BOARD_InitDEBUG_UARTPins">
+                     <feature name="initialized" evaluation="equal">
+                        <data>true</data>
+                     </feature>
+                  </dependency>
                   <dependency resourceType="SWComponent" resourceId="platform.drivers.common" description="Pins initialization requires the COMMON Driver in the project." problem_level="2" source="Pins:BOARD_InitDEBUG_UARTPins">
                      <feature name="enabled" evaluation="equal" configuration="cm33_core0">
                         <data>true</data>
@@ -385,6 +390,7 @@
                   </pin>
                   <pin peripheral="CTIMER0" signal="CAPTURE, 0" pin_num="F4" pin_signal="PIO1_17/FC5_P1/FC3_P5/CT_INP13/SCT0_OUT7/FLEXIO0_D25/SMARTDMA_PIO13/PLU_OUT5/ENET0_RXD3/I3C1_SCL/ADC1_A17"/>
                   <pin peripheral="CTIMER1" signal="CAPTURE, 0" pin_num="E4" pin_signal="PIO1_15/WUU0_IN13/FC3_P3/CT_INP11/SCT0_IN5/FLEXIO0_D23/SMARTDMA_PIO11/PLU_IN3/ENET0_RXD1/I3C1_PUR/TSI0_CH24/ADC1_A15"/>
+                  <pin peripheral="CTIMER2" signal="CAPTURE, 0" pin_num="F6" pin_signal="PIO1_16/WUU0_IN14/FC5_P0/FC3_P4/CT_INP12/SCT0_OUT6/FLEXIO0_D24/SMARTDMA_PIO12/PLU_OUT4/ENET0_RXD2/I3C1_SDA/ADC1_A16"/>
                </pins>
             </function>
             <function name="BOARD_InitSWD_DEBUGPins">
