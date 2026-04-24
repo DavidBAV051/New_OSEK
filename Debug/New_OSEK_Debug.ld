@@ -6,7 +6,7 @@
  * Generated linker script file for MCXN947
  * Created from linkscript.ldt by FMCreateLinkLibraries
  * Using Freemarker v2.3.30
- * MCUXpresso IDE v25.6 [Build 136] [2025-06-27] on Apr 17, 2026, 8:57:50 AM
+ * MCUXpresso IDE v25.6 [Build 136] [2025-06-27] on Apr 24, 2026, 11:15:13 AM
  */
 
 INCLUDE "New_OSEK_Debug_library.ld"

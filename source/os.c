@@ -14,13 +14,10 @@ Task_Control_Struct task_arr[MAX_NUMBER_TASKS];
 unsigned long idle;
 unsigned long temp;
 unsigned long temp_sp;
-u8 current_task_id        = ZERO;
-u8 num_tasks_configured   = CONFIGURED_TASKS;
+u8 current_task_id = ZERO;
+u8 num_tasks_configured = CONFIGURED_TASKS;
 u8 volatile interrupt_active = ZERO;
-volatile bool td_flag     = FALSE;
-
-Mutex_t     led_mutex;
-Semaphore_t led_sem;
+volatile bool td_flag = FALSE;
 
 /*==================================================================*/
 void scheduler(void){
@@ -116,81 +113,6 @@ void SysTick_Handler(void) {
 }
 
 /*==================================================================*/
-void mutex_init(Mutex_t *m){
-    m->locked          = FALSE;
-    m->owner_id        = U8_SIZE;
-    m->waiting_task_id = U8_SIZE;
-}
-
-void mutex_lock(Mutex_t *m){
-    Context_Backup();
-
-    if(m->locked == FALSE){
-        m->locked = TRUE; // Si el mutex esta libre tomalo
-        m->owner_id = current_task_id;
-    } else {
-        m->waiting_task_id = current_task_id;
-
-        task_arr[current_task_id].Estado = WAIT;
-        task_arr[current_task_id].Pause = TRUE;
-        task_arr[current_task_id].DirTask_Pause = (void (*)(void))temp;
-        task_arr[current_task_id].SP_Pause = temp_sp;
-
-        scheduler();
-    }
-}
-
-void mutex_unlock(Mutex_t *m){
-    if(m->owner_id != current_task_id){
-        return;
-    }
-
-    if(m->waiting_task_id != U8_SIZE){
-        u8 waiting = m->waiting_task_id;
-        m->owner_id = waiting;
-        m->waiting_task_id = U8_SIZE;
-
-        task_arr[waiting].Estado = READY;
-    } else {
-        m->locked   = FALSE;
-        m->owner_id = U8_SIZE;
-    }
-}
-
-
-void sem_init(Semaphore_t *s, u8 initial_count){
-    s->count           = initial_count;
-    s->waiting_task_id = U8_SIZE;
-}
-
-void sem_wait(Semaphore_t *s){
-    Context_Backup();
-
-    if(s->count > ZERO){
-        s->count--;
-    } else {
-        s->waiting_task_id = current_task_id;
-
-        task_arr[current_task_id].Estado = WAIT;
-        task_arr[current_task_id].Pause = TRUE;
-        task_arr[current_task_id].DirTask_Pause = (void (*)(void))temp;
-        task_arr[current_task_id].SP_Pause = temp_sp;
-
-        scheduler();
-    }
-}
-
-void sem_signal(Semaphore_t *s){
-    if(s->waiting_task_id != U8_SIZE){
-        u8 waiting         = s->waiting_task_id;
-        s->waiting_task_id = U8_SIZE;
-        task_arr[waiting].Estado = READY;
-    } else {
-        s->count++;
-    }
-}
-
-/*==================================================================*/
 u8 activate_task(u8 Task_ID){
 	Context_Backup();
 	if(Task_ID >= MAX_NUMBER_TASKS){
@@ -249,11 +171,15 @@ void task_config(void){
 
 	task_arr[TASK_2_ID].Autostart = TRUE;
 	task_arr[TASK_2_ID].Priority = ONE;
-	task_arr[TASK_2_ID].DirTask = task_LEDON;
+	task_arr[TASK_2_ID].DirTask = task_PWM1;
 
 	task_arr[TASK_3_ID].Autostart = TRUE;
 	task_arr[TASK_3_ID].Priority = ONE;
-	task_arr[TASK_3_ID].DirTask = task_LEDOFF;
+	task_arr[TASK_3_ID].DirTask = task_PWM2;
+
+	task_arr[TASK_4_ID].Autostart = TRUE;
+	task_arr[TASK_4_ID].Priority = ONE;
+	task_arr[TASK_4_ID].DirTask = task_PWM3;
 
 }
 

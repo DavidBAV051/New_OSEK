@@ -24,7 +24,6 @@
 
 /*==================================================================*/
 /* --- Definitions --- */
-/* LED Definitions */
 #define LED_ROJO BOARD_LED_RED_GPIO_PIN
 #define LED_VERDE BOARD_LED_GREEN_GPIO_PIN
 #define LED_AZUL BOARD_LED_BLUE_GPIO_PIN
@@ -111,36 +110,40 @@ int main(void) {
     return ZERO ;
 }
 
-void task_LEDON(void){
-	sem_wait(&led_sem);
-    while(ONE){
-        mutex_lock(&led_mutex);
-        LED_RED_ON();
-        mutex_unlock(&led_mutex);
-        sem_signal(&led_sem);
-    }
-}
-
-void task_LEDOFF(void){
-	sem_wait(&led_sem);
-	while (ONE){
-		mutex_lock(&led_mutex);
-		LED_RED_OFF();
-		mutex_unlock(&led_mutex);
+void task_PWM1(void){
+	while(ONE){
+		LED_GREEN_ON();
+		task_delay(1);
+		LED_GREEN_OFF();
+		task_delay(9);
 	}
 }
 
-void task_ISR_BTN(void){
-    delay();
-    LED_GREEN_ON();
-    LED_BLUE_ON();
-    LED_RED_ON();
-    delay();
-    LED_BLUE_OFF();
-    LED_GREEN_OFF();
-    LED_RED_OFF();
-    sem_signal(&led_sem);
-
-    terminate_task_ISR();
+void task_PWM2(void){
+	while(ONE){
+		LED_RED_ON();
+		task_delay(3);
+		LED_RED_OFF();
+		task_delay(7);
+	}
 }
 
+void task_PWM3(void){
+	while(ONE){
+		LED_BLUE_ON();
+		task_delay(5);
+		LED_BLUE_OFF();
+		task_delay(5);
+	}
+}
+void task_ISR_BTN(void){
+	delay();
+	LED_GREEN_ON();
+	LED_BLUE_ON();
+	LED_RED_ON();
+	delay();
+	LED_BLUE_OFF();
+	LED_GREEN_OFF();
+	LED_RED_OFF();
+	terminate_task_ISR();
+}
